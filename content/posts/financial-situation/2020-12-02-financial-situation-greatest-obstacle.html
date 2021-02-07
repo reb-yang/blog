@@ -1,0 +1,295 @@
+---
+title: "Financial Situation is Greatest Obstacle Faced by Canadian Students"
+author: "Rebecca Yang"
+date: '2020-12-01'
+
+slug: financial-situation-is-greatest-obstacle
+categories: ["R"]
+output: blogdown::html_page
+
+
+
+---
+
+<script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
+<link href="/rmarkdown-libs/lightable/lightable.css" rel="stylesheet" />
+
+
+<div id="abstract" class="section level1">
+<h1>Abstract</h1>
+<p>Many Canadian students have aspirations for higher levels of education, but do not always believe that it is likely to achieve them. This research studied the obstacles they face in obtaining their desired level of education as reported in the 2016 General Social Survey conducted by Statistics Canada. It found that financial situation was the most common obstacle and women were more likely to face obstacles. These findings reiterate the existence of roadblocks in attaining education and the importance for government funding and financial aid to make education accessible for all students.</p>
+</div>
+<div id="introduction" class="section level1">
+<h1>Introduction</h1>
+<p>“Stay in school, kids”. This mantra has been preached to children for generations, instilling in them the idea that education is the key to social mobility, financial security, and a stable future. This holds even more true for post-secondary education. The 2016 Canadian census reported that men and women with a bachelor’s degree earned 47.2% and 58% more, respectively, than their counterparts with only high school diplomas (Statistics Canada, 2017). However, while society has made education very desirable, the question of whether or not it is attainable for all students remains. It was found that nearly a third of students reported facing obstacles in getting education.Perhaps unsurprisingly, the most commonly identified obstacle was financial situation, with 66% of responses.</p>
+<p>Many students reported a difference in their desired level of education and the level of education they believed they were likely to complete. While non-college certificate programs and trade schools seemed to be considered relatively realistic options, Master’s and college degrees were perceived to be less attainable.The disconnect between students’ aspirations and what they believed possible warranted further investigation into what exactly is standing between them and their desired education and whether or not obstacles are the same across different groups. Newfoundland and Labrador was found to have the lowest percentage of students facing obstacles, while Prince Edward Island, Quebec, and Ontario had the highest. Women and students over 25 were found to be more likely to face obstacles, than men and students under 25. This was especially the case for the obstacle of caring for children.</p>
+<p>That being said, it’s important to bear in mind the limitations of these findings. These are just initial insights from the GSS, and these differences have not been tested for statistical significance in any way. So, these results should be taken with a grain of salt, but nonetheless can serve as the impetus for future research and exploration. In addition, the data used was from a survey that was targeted towards all Canadians, so students were only a subset of the full sample, with uneven representation across provinces. A survey targeted towards students about how they can be best supported, perhaps with particular focus on women with children, is the logical next step in bridging the gap between students’ educational hopes and realities.</p>
+</div>
+<div id="data" class="section level1">
+<h1>Data</h1>
+<p>The data used is from the General Social Survey (GSS), a survey conducted annually by Statistics Canada in order to gain insight into Canadians’ social lives, habits, views, and well-being, and usually focuses on a particular aspect each year. This analysis makes use of the 2016 iteration of the GSS, which focused on “Canadians at Work and Home”. The target population was residents of Canada, except for the Yukon, Northwest Territories, and Nunavut, aged 15 and over that were not institutionalized. It followed a stratified sampling design based on geographic area and the frame was constructed with the Address Register and telephone number records (Statistics Canada, 2017).</p>
+<p>This study focuses on individuals who reported that their main activity was going to school. Out of the 19,609 respondents, 1236 of them identified as students and were asked specific questions about their educational plans and goals<a href="#fn1" class="footnote-ref" id="fnref1"><sup>1</sup></a>. For the purposes of this study, non-college certificates, private business programs, trade school programs, and the like were considered together as a group. Students over the age of 25 were also considered together as one age group.</p>
+<p>The variables of interest were the following:</p>
+<ul>
+<li>province</li>
+<li>sex</li>
+<li>age_group</li>
+<li>likely_future_edu: the level of education the respondent thought they were likely to attain (High School Diploma/Equivalent, Non-college Certificate, Professional (i.e. Medicine), Ph.D., College/CEGEP, Master’s, Bachelor’s, Other)</li>
+<li>desired_future_edu: the level of education the respondent desired to attain</li>
+<li>obstacles: whether or not the respondent faced obstacles in attaining their desired education</li>
+<li>obstacles_future_edu: if respondents responded “yes” to the above question, they were asked to identify the specific obstacles</li>
+</ul>
+<p>At a glance, the respondents were 52% female and 48% male, with 77% between the ages of 15 and 24 and 23% aged over 25. Students from Ontario were the most represented, comprising 30% of the sample.</p>
+<table class="table table-condensed table-striped" style="margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:unnamed-chunk-1">Table 1: </span>Student Demographics
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Variable
+</th>
+<th style="text-align:right;">
+Proportion
+</th>
+</tr>
+</thead>
+<tbody>
+<tr grouplength="2">
+<td colspan="2" style="border-bottom: 1px solid;">
+<strong>Sex</strong>
+</td>
+</tr>
+<tr>
+<td style="text-align:left; padding-left:  2em;" indentlevel="1">
+Female
+</td>
+<td style="text-align:right;">
+52 %
+</td>
+</tr>
+<tr>
+<td style="text-align:left; padding-left:  2em;" indentlevel="1">
+Male
+</td>
+<td style="text-align:right;">
+48 %
+</td>
+</tr>
+<tr grouplength="2">
+<td colspan="2" style="border-bottom: 1px solid;">
+<strong>Age Group</strong>
+</td>
+</tr>
+<tr>
+<td style="text-align:left; padding-left:  2em;" indentlevel="1">
+15 to 24 years
+</td>
+<td style="text-align:right;">
+84 %
+</td>
+</tr>
+<tr>
+<td style="text-align:left; padding-left:  2em;" indentlevel="1">
+25 and over
+</td>
+<td style="text-align:right;">
+16 %
+</td>
+</tr>
+<tr grouplength="10">
+<td colspan="2" style="border-bottom: 1px solid;">
+<strong>Province</strong>
+</td>
+</tr>
+<tr>
+<td style="text-align:left; padding-left:  2em;" indentlevel="1">
+Alberta
+</td>
+<td style="text-align:right;">
+10 %
+</td>
+</tr>
+<tr>
+<td style="text-align:left; padding-left:  2em;" indentlevel="1">
+British Columbia
+</td>
+<td style="text-align:right;">
+13 %
+</td>
+</tr>
+<tr>
+<td style="text-align:left; padding-left:  2em;" indentlevel="1">
+Manitoba
+</td>
+<td style="text-align:right;">
+3 %
+</td>
+</tr>
+<tr>
+<td style="text-align:left; padding-left:  2em;" indentlevel="1">
+New Brunswick
+</td>
+<td style="text-align:right;">
+2 %
+</td>
+</tr>
+<tr>
+<td style="text-align:left; padding-left:  2em;" indentlevel="1">
+Newfoundland and Labroador
+</td>
+<td style="text-align:right;">
+1 %
+</td>
+</tr>
+<tr>
+<td style="text-align:left; padding-left:  2em;" indentlevel="1">
+Nova Scotia
+</td>
+<td style="text-align:right;">
+2 %
+</td>
+</tr>
+<tr>
+<td style="text-align:left; padding-left:  2em;" indentlevel="1">
+Ontario
+</td>
+<td style="text-align:right;">
+42 %
+</td>
+</tr>
+<tr>
+<td style="text-align:left; padding-left:  2em;" indentlevel="1">
+Prince Edward Island
+</td>
+<td style="text-align:right;">
+0 %
+</td>
+</tr>
+<tr>
+<td style="text-align:left; padding-left:  2em;" indentlevel="1">
+Quebec
+</td>
+<td style="text-align:right;">
+23 %
+</td>
+</tr>
+<tr>
+<td style="text-align:left; padding-left:  2em;" indentlevel="1">
+Saskatchewan
+</td>
+<td style="text-align:right;">
+3 %
+</td>
+</tr>
+</tbody>
+</table>
+The distinction between likely and desired education made by the survey was of particular interest.
+The following graph compares the percentage of students who would like to attain a certain level of education to the percentage of students who believe that they will actually accomplish that level.
+<div class="figure"><span id="fig:unnamed-chunk-4"></span>
+<img src="/posts/financial-situation/2020-12-02-financial-situation-greatest-obstacle_files/figure-html/unnamed-chunk-4-1.png" alt="A comparison of students' desired and likely education levels" width="672" />
+<p class="caption">
+Figure 1: A comparison of students’ desired and likely education levels
+</p>
+</div>
+<p>It can be seen that Master’s degrees were not perceived to be attainable, as not all students that desired them believed they were likely to achieve them. Instead, they seem to have resigned themselves to the fact that they will probably “settle” for a Bachelor’s degree, as 36% of students think they will likely get one, compared to 28% that are actually aiming for them. For lower levels of education, college degrees were also not perceived as attainable, with 16% desiring them, but 10% thinking them likely.</p>
+<p>But if education is such a good thing, what is stopping students from getting the level of education they want?</p>
+<p>When asked if they faced obstacles in obtaining education, 30% of students responded “Yes”. At the provincial level, 37% of students in Prince Edward Island responded similarly, followed closely by 32% of students in Ontario and Quebec both. Meanwhile only 16% of students in Newfoundland and Labrador reported facing obstacles. Their exceptionally low rate is interesting, especially considering the fact that Newfoundland and Labrador replaced provincial student loans with grants in 2015 (CBC, 2015).</p>
+<div class="figure"><span id="fig:unnamed-chunk-6"></span>
+<img src="/posts/financial-situation/2020-12-02-financial-situation-greatest-obstacle_files/figure-html/unnamed-chunk-6-1.png" alt="Students were asked if they faced obstacles in obtaining education" width="672" />
+<p class="caption">
+Figure 2: Students were asked if they faced obstacles in obtaining education
+</p>
+</div>
+<div class="figure"><span id="fig:unnamed-chunk-7"></span>
+<img src="/posts/financial-situation/2020-12-02-financial-situation-greatest-obstacle_files/figure-html/unnamed-chunk-7-1.png" alt="Percentage of students facing obstacles varies across provinces" width="672" />
+<p class="caption">
+Figure 3: Percentage of students facing obstacles varies across provinces
+</p>
+</div>
+Financial situation was overwhelmingly identified as the main obstacle students faced, comprising 66% of responses. Other obstacles identified included the length of time the program requires (7%), the inability to get into a program (8%), personal health (6%), and having to care for children (3%).
+<div class="figure"><span id="fig:unnamed-chunk-8"></span>
+<img src="/posts/financial-situation/2020-12-02-financial-situation-greatest-obstacle_files/figure-html/unnamed-chunk-8-1.png" alt="Students were asked to identity the obstacles they faced " width="672" />
+<p class="caption">
+Figure 4: Students were asked to identity the obstacles they faced
+</p>
+</div>
+<p>This is not all together surprising, given the rising costs of higher education across Canada. According to Statistics Canada, in 2015, 50% of students graduated with some form of student debt (Statistics Canada, 2020).</p>
+<p>If anything, the finding that education is a financial burden for students probably seems like it should be common knowledge at this point, but evidently it is still not obvious to the most important people. In 2019, the Ontario provincial government announced cuts of $670 million to OSAP, the Ontario Student Assistance Program, which provides financial aid through loans and grants to lower-income students (Jones, 2019). While they justified it through a 10% tuition reduction, the reduction in grants was much more significant, forcing students to shoulder more crippling student debt to finance their education. These findings simply reinforce the importance of government funding for higher education.</p>
+<p>Breaking obstacles down by gender, women were found to be more likely to face obstacles than males. Thirty-four percent (34%) of females reported facing obstacles, compared to 26% of males.</p>
+<div class="figure"><span id="fig:unnamed-chunk-10"></span>
+<img src="/posts/financial-situation/2020-12-02-financial-situation-greatest-obstacle_files/figure-html/unnamed-chunk-10-1.png" alt="Women are more likely to face obstacles than men" width="672" />
+<p class="caption">
+Figure 5: Women are more likely to face obstacles than men
+</p>
+</div>
+Of those students that faced obstacles, more females reported facing financial obstacles.
+<div class="figure"><span id="fig:unnamed-chunk-11"></span>
+<img src="/posts/financial-situation/2020-12-02-financial-situation-greatest-obstacle_files/figure-html/unnamed-chunk-11-1.png" alt="More women reported financial situation as an obstacle" width="672" />
+<p class="caption">
+Figure 6: More women reported financial situation as an obstacle
+</p>
+</div>
+<p>In comparing age groups, 51% of students aged 25 and over faced obstacles, while only 26% of students aged 15 to 24 faced obstacles.</p>
+<div class="figure"><span id="fig:unnamed-chunk-13"></span>
+<img src="/posts/financial-situation/2020-12-02-financial-situation-greatest-obstacle_files/figure-html/unnamed-chunk-13-1.png" alt="Students over 25 are more likely to face obstacles" width="672" />
+<p class="caption">
+Figure 7: Students over 25 are more likely to face obstacles
+</p>
+</div>
+Not being able to get into a program and financial situation seemed to be bigger obstacles for younger students. On the other hand, caring for children was primarily an obstacle for older students.
+<div class="figure"><span id="fig:unnamed-chunk-14"></span>
+<img src="/posts/financial-situation/2020-12-02-financial-situation-greatest-obstacle_files/figure-html/unnamed-chunk-14-1.png" alt="Child care is a greater issue for older students" width="672" />
+<p class="caption">
+Figure 8: Child care is a greater issue for older students
+</p>
+</div>
+</div>
+<div id="weaknesses-and-things-to-consider" class="section level1">
+<h1>Weaknesses and Things to Consider</h1>
+<p>Given that students were not the target population of the survey and represent a small subset of the sample, this lead to weaknesses in the results. Due to the structure of the survey, only respondents whose main activity was going to school were prompted to answer questions about their educational plans. As a result, the survey fails to account for the obstacles that prevent people from going to school at all.</p>
+<p>In addition, these are just initial findings from the GSS data. For more robust conclusions about the strength of these findings, hypothesis tests should be undertaken.</p>
+</div>
+<div id="next-steps" class="section level1">
+<h1>Next Steps</h1>
+<p>In a future survey, it would be interesting to find out more about people are not currently in school, but want to get an education, and the barriers that those individuals face. This could potentially be done by opening up the questions up to non-students in future iterations of the GSS. Further research regarding child care as an obstacle for female students could also be of interest. For example, are they single parents? Is it largely a financial obstacle due to the costs of raising a child and child care services? However, these students would be hard to survey as they occupy a niche in the population.</p>
+</div>
+<div id="code" class="section level1">
+<h1>Code</h1>
+<p>Codes can be found at <a href="https://github.com/reb-yang/edu_obstacles" class="uri">https://github.com/reb-yang/edu_obstacles</a></p>
+<p>Data accessed through CHASS Data Centre via the University of Toronto <a href="https://sda-artsci-utoronto-ca.myaccess.library.utoronto.ca/cgi-bin/sda/hsda?harcsda4+gss30" class="uri">https://sda-artsci-utoronto-ca.myaccess.library.utoronto.ca/cgi-bin/sda/hsda?harcsda4+gss30</a></p>
+</div>
+<div id="acknowledgements" class="section level1">
+<h1>Acknowledgements</h1>
+<p>Special thanks to Rohan Alexander, a man with impeccable taste in Taylor Swift songs, for his GSS cleaning code.</p>
+</div>
+<div id="references" class="section level1">
+<h1>References</h1>
+<ul>
+<li>CBC/Radio Canada. (2015, August 3). Provincial student loans now replaced with grants in N.L. | CBC News. CBCnews. <a href="https://www.cbc.ca/news/canada/newfoundland-labrador/provincial-student-loans-now-replaced-with-grants-in-n-l-1.3177298" class="uri">https://www.cbc.ca/news/canada/newfoundland-labrador/provincial-student-loans-now-replaced-with-grants-in-n-l-1.3177298</a>.</li>
+<li>Jones, A. (2019, September 1). Province’s cuts to OSAP mean more debt, stress as students head back to school | CBC News. <a href="https://www.cbc.ca/news/canada/toronto/osap-debt-stress-students-1.5267350" class="uri">https://www.cbc.ca/news/canada/toronto/osap-debt-stress-students-1.5267350</a>.</li>
+<li>Hadley Wickham, Romain François, Lionel Henry and Kirill Müller (2020). dplyr: A
+Grammar of Data Manipulation. R package version 1.0.2.
+<a href="https://CRAN.R-project.org/package=dplyr" class="uri">https://CRAN.R-project.org/package=dplyr</a></li>
+<li>Hao Zhu (2020). kableExtra: Construct Complex Table with ‘kable’ and Pipe Syntax. R
+package version 1.2.1. <a href="https://CRAN.R-project.org/package=kableExtra" class="uri">https://CRAN.R-project.org/package=kableExtra</a></li>
+<li>JJ Allaire and Yihui Xie and Jonathan McPherson and Javier Luraschi and Kevin Ushey and Aron Atkins and Hadley Wickham and Joe Cheng and Winston Chang and Richard Iannone (2020). rmarkdown: Dynamic Documents for R. R package version 2.3. URL <a href="https://rmarkdown.rstudio.com" class="uri">https://rmarkdown.rstudio.com</a>.</li>
+<li>R Core Team (2020). R: A language and environment for statistical computing. R, Foundation for Statistical Computing, Vienna, Austria. URL, <a href="https://www.R-project.org/" class="uri">https://www.R-project.org/</a>.</li>
+<li>Sam Firke (2020). janitor: Simple Tools for Examining and Cleaning Dirty Data. R
+package version 2.0.1. <a href="https://CRAN.R-project.org/package=janitor" class="uri">https://CRAN.R-project.org/package=janitor</a></li>
+<li>Statistics Canada. 2017. Does education pay? A comparison of earnings by level of education in Canada and its provinces and territories. Ottawa, Ontario. Analysis Series, 2016 Census. Statistics Canada Catalogue no. 98-200-X Last updated Apr 03, 2019.</li>
+<li>Statistics Canada. (2017). General social survey on Canadians at Work and Home (cycle 30), 2016 (public-use microdata file). Statistics Canada (producer). Using CHASS (distributor).
+<a href="https://sda-artsci-utoronto-ca.myaccess.library.utoronto.ca/cgi-bin/sda/hsda?harcsda4+gss30" class="uri">https://sda-artsci-utoronto-ca.myaccess.library.utoronto.ca/cgi-bin/sda/hsda?harcsda4+gss30</a> (accessed September 25, 2020). Accompanying documentation: user guide and questionnaire (PDF).</li>
+<li>Statistics Canada. (2020). “Half of recent postsecondary graduates had student debt prior to the pandemic.” The Daily. July 28. Statistics Canada Catalogue no. 11-001-XIE.
+<a href="http://www.statcan.ca/Daily/English/040728/d040728a.htm" class="uri">http://www.statcan.ca/Daily/English/040728/d040728a.htm</a> (accessed August 16, 2005).
+<a href="https://www12.statcan.gc.ca/census-recensement/2016/as-sa/98-200-x/2016024/98-200-x2016024-eng.cfm" class="uri">https://www12.statcan.gc.ca/census-recensement/2016/as-sa/98-200-x/2016024/98-200-x2016024-eng.cfm</a> (accessed September 26, 2020)</li>
+<li>Wickham et al., (2019). Welcome to the tidyverse. Journal of Open Source Software,
+4(43), 1686, <a href="https://doi.org/10.21105/joss.01686" class="uri">https://doi.org/10.21105/joss.01686</a></li>
+</ul>
+</div>
+<div class="footnotes">
+<hr />
+<ol>
+<li id="fn1"><p>When weighted, these students represent 3,750,679 people in the Canadian population. Weights supplied by Statistics Canada are used throughout in all the calculations<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
+</ol>
+</div>

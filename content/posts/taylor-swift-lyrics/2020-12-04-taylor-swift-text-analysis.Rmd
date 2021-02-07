@@ -1,0 +1,200 @@
+---
+title: "Taylor Swift Text Analysis"
+author: 'Rebecca Yang'
+date: '2020-12-04'
+slug: taylor-swift-text-analysis
+categories: ["R", "text analysis", "Taylor Swift"]
+tags: []
+output: blogdown::html_page
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(tidytext)
+library(tidyverse)
+library(stm)
+library(quanteda)
+library(reshape2)
+library(ggplot2)
+library(geometry)
+library(Rtsne)
+library(rsvd)
+library(syuzhet)
+library(kableExtra)
+library(textdata)
+library(dplyr)
+library(extrafont)
+library(sysfonts)
+library(imager)
+library(magick)
+library(knitr)
+```
+As the year comes to an end, Spotify Wrapped kindly reminds me of just how much Taylor Swift I listened to throughout the year. 
+
+![](/posts/taylor-swift-lyrics/2020-12-04-taylor-swift-text-analysis_files/IMG_7224.jpg){width=30%}
+
+This album didn't even come out until the end of July. 
+
+In this blog post, I make my first foray into the world of text analysis using one of the finest sources of text bestowed upon humankind: Taylor Swift lyrics. 
+
+# Data 
+
+I'm not an expert on many things, but I am confident enough to consider myself a Taylor Swift expert (one might even say a stan). So, when I saw this data set of Taylor Swift lyrics, I had to play with it. It comes from Rosie Baillie and Dr. Sara Stoudt, and it was featured by [Tidy Tuesday](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-09-29/readme.md) in September. I was inspired by Rosie's original [post](https://rpubs.com/RosieB/taylorswiftlyricanalysis) (most of my data cleaning code comes from her, so big thanks!), in which she analyzed sentiments and performed topic modeling for the songs and albums. The data includes all the songs on the deluxe versions of the album (except for folklore). 
+
+```{r}
+taylor_swift_lyrics <- readr::read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-09-29/taylor_swift_lyrics.csv')
+```
+
+I was interested in the sentiments associated with each track number, so I added track numbers for each song. As every Taylor fan knows, there is significance behind the position of a song within the album. Track 5 is probably the best example; it's well known as the most personal/sad/emotionally devastating/depressing song on the album. Here are some notable cases: 
+
+- "my tears ricochet" (folklore)
+- "The Archer" (Lover)
+- "All Too Well" (Red)
+- "Dear John" (Speak Now)
+- "White Horse" (Fearless)
+
+
+First, I had to manually fix the Fearless track numbers because the ordering is weird for the Platinum Edition of Fearless. The rest of the initial cleaning is the same as Rosie's original [post](https://rpubs.com/RosieB/taylorswiftlyricanalysis). 
+```{r}
+taylor_swift_lyrics <- taylor_swift_lyrics %>%  # adding track numbers 
+  group_by(Album) %>% 
+  mutate(Track = row_number()) %>% 
+  ungroup()
+
+fearless_tracks <- c(14, 15, 11, 16:18, 1:10, 12, 13)
+taylor_swift_lyrics$Track[which(taylor_swift_lyrics$Album == "Fearless")] <-  fearless_tracks
+```
+
+```{r}
+# From Rosie 
+data(stop_words)
+
+tidy_swift <- taylor_swift_lyrics %>%
+  unnest_tokens(word, Lyrics)  %>% 
+   anti_join(stop_words, by=c("word"="word")) 
+
+tidy_swift <- tidy_swift  %>%  filter(word != "ooh") %>% 
+  filter(word != "yeah") %>% 
+  filter(word != "ah") %>% 
+  filter(word != "uh") %>% 
+  filter(word != "ha") %>%
+  filter(word != "whoa") %>%
+  filter(word != "eh") %>%
+  filter(word != "hoo") %>%
+  filter(word != "ey") %>%
+  filter(word != "mmm") %>% 
+  filter(word != "eeh") %>% 
+  filter(word != "huh") %>% 
+  filter(word != "na")
+```
+This gets rid of the "filler" words in each song. 
+
+# Analysis 
+
+Sentiments and emotions were assigned to each word according to the NRC dictionary. Some words were associated with multiple emotions, while some words were neutral. For example, "adore" was a positive word associated with joy, anticipation, and trust, but "blue" and "eyes" were not associated with anything. 
+
+```{r}
+my_cols <- c("#7a7979","#ffc2da") # fall cottagecore colors 
+lyric_sentiments <- tidy_swift %>%
+  inner_join(get_sentiments("nrc"), by="word")
+ 
+lyric_sentiments  %>% 
+  filter(sentiment == "negative" | sentiment == "positive") %>%
+  group_by(Track,sentiment) %>% 
+  count()  %>% 
+  ungroup(sentiment) %>%
+  mutate(prop = n/sum(n),
+         prop = ifelse(sentiment == "negative", prop*-1, prop)) %>% 
+  ggplot(aes(x =  as.factor(Track), y = prop, fill = sentiment)) + 
+  geom_bar(stat="identity", show.legend = FALSE, width = 0.8) + 
+  scale_x_discrete(limits =  c(1:19)) + 
+  labs(y = "Negative vs. Positive Lyrics", x = "Track Number", title = "Taylor Swift Song Sentiment Analysis") + 
+  theme_minimal() + 
+  theme(plot.title = element_text(hjust = 0.5),
+        panel.grid = element_blank(),
+        panel.border = element_rect(fill = NA, color = "black"),  
+        text = element_text(family = "mono")) + 
+  scale_y_continuous(limits = c(-0.8, 0.8)) + 
+  scale_fill_manual(values = my_cols)
+
+```
+
+While Track 5 was relatively negative, it appeared to have some competition from Track 7 or even Track 18. 
+
+Next, I looked at Track 5 on each album individually. On reputation, Track 5 ("Delicate") actually had more positive lyrics than negative. On the other end, "The Archer" seemed to live up to the Track 5 reputation the most. "All You Had to Do Was Stay" was an interesting case, as it did not have as many sentimental words in general, but the ones it did have were largely negative. 
+```{r}
+lyric_sentiments <- lyric_sentiments %>% mutate(
+          Title = factor(str_replace(Title, "my tear ricochet", "my tears ricochet"), 
+                        levels = c("Cold As You", "White Horse", "Dear John", "All Too Well", "All You Had to Do Was Stay", "Delicate", "The Archer", "my tears ricochet")))
+
+lyric_sentiments %>% 
+  filter(Track == 5)  %>%
+  filter(sentiment == "negative" | sentiment == "positive") %>%
+  group_by(Title, Track,sentiment) %>% 
+  count()  %>% 
+  mutate(n = ifelse(sentiment == "negative", n*-1, n)) %>%
+  ggplot(aes(y = fct_rev(Title), x = n, fill = sentiment)) +
+  geom_bar(stat="identity", show.legend = FALSE, width = 0.8) +
+  labs(y = "", x = "Negative vs. Positive Lyrics", title = "Track 5 Comparison") + 
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5),
+        panel.grid = element_blank(),
+        panel.border = element_rect(fill = NA, color = "black"),
+        text = element_text(family = "mono")) + 
+  scale_fill_manual(values = my_cols)
+
+```
+
+I took a further look at the specific underlying sentiments in each song. Anger comes across as main theme in "my tears ricochet", and "The Archer" is dominated by sadness, fear, and anger, which checks out. Trust was notable in "All Too Well" and "White Horse", which is interesting since these are both breakup songs. Unsurprisingly, each song had a good amount of sadness. 
+```{r}
+my_cols2 <- c("#0ad1c7", "#e0d9b1", "#ad2aa9", "#eb1527", "#a0aae8", "#424242", "#ffabdf", "#dbdbdb")
+lyric_sentiments %>% 
+  filter(Track == 5) %>%
+  filter(sentiment != "negative" & sentiment != "positive") %>% 
+  count(Title, sentiment) %>% 
+  group_by(Title) %>% 
+  ggplot(aes(y = fct_rev(Title), x = n, fill = Title)) +
+  labs(y = "") + 
+  geom_bar(stat = "identity") +
+  facet_wrap(~sentiment) + 
+  theme_minimal() +
+  theme(legend.position = "none",
+        text = element_text(family = "mono")) + 
+  scale_fill_manual(values = my_cols2)
+```
+
+# Thoughts
+
+After this exercise, I realized that this type of sentiment analysis at the individual word level does not apply very well to Taylor Swift songs.
+
+Taylor really likes to convey sadness by reflecting on happier times that are no longer. For example, in "All Too Well", she says: "Maybe this thing was a masterpiece before you tore it all up". Here, "masterpiece" registers as a positive and joyous lyric when it is taken out of context. 
+
+Similarly, in "White Horse", she sings: "Now it's too late for you and your white horse to catch me now". While "late" is correctly identified as negative, "horse" is associated with trust, and "white" is considered positive and related to anticipation, joy, and trust. The individual lyrics may be positive, but as a whole they are not. 
+
+```{r}
+lyric_sentiments %>% 
+  filter(word == "masterpiece" |
+         word == "late" |
+         word == "white" |
+         word == "horse") %>% 
+  count(word, sentiment) %>%
+select(-n) %>% 
+  kbl() %>% 
+  kable_styling()
+
+```
+
+Also, the sentiments that the NRC dictionary assigns to words are kind of questionable. Does "white" really contain that many positive connotations?
+
+Since it only considers one word at a time, it falls short when it comes to metaphors, which are another Taylor staple. To use "All Too Well" as an example again, she sings "I'm a crumpled up piece of paper lying here".  Clearly this is not a very happy lyric, but there are no sentiments associated with paper in the dictionary. 
+
+Obviously, this was an extremely simple method of sentiment analysis, and I'm sure far more advanced methods would do a much better job with Taylor's lyrics. But, the shortcomings here showed me the complex nature of textual data. 
+
+# Notes For My Future Self
+
+To tie it back to the very beginning of this post, I think it would be cool to use the data on Taylor's music from the Spotify API, which has their own measures of how "happy" a song is. 
+
+
+# Github Link
+
+
+

@@ -1,0 +1,236 @@
+---
+title: "Taylor Swift Text Analysis"
+author: 'Rebecca Yang'
+date: '2020-12-04'
+slug: taylor-swift-text-analysis
+categories: ["R", "text analysis", "Taylor Swift"]
+tags: []
+output: blogdown::html_page
+---
+
+<script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
+<link href="/rmarkdown-libs/lightable/lightable.css" rel="stylesheet" />
+
+
+<p>As the year comes to an end, Spotify Wrapped kindly reminds me of just how much Taylor Swift I listened to throughout the year.</p>
+<p><img src="/posts/taylor-swift-lyrics/2020-12-04-taylor-swift-text-analysis_files/IMG_7224.jpg" style="width:30.0%" /></p>
+<p>This album didn’t even come out until the end of July.</p>
+<p>In this blog post, I make my first foray into the world of text analysis using one of the finest sources of text bestowed upon humankind: Taylor Swift lyrics.</p>
+<div id="data" class="section level1">
+<h1>Data</h1>
+<p>I’m not an expert on many things, but I am confident enough to consider myself a Taylor Swift expert (one might even say a stan). So, when I saw this data set of Taylor Swift lyrics, I had to play with it. It comes from Rosie Baillie and Dr. Sara Stoudt, and it was featured by <a href="https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-09-29/readme.md">Tidy Tuesday</a> in September. I was inspired by Rosie’s original <a href="https://rpubs.com/RosieB/taylorswiftlyricanalysis">post</a> (most of my data cleaning code comes from her, so big thanks!), in which she analyzed sentiments and performed topic modeling for the songs and albums. The data includes all the songs on the deluxe versions of the album (except for folklore).</p>
+<pre class="r"><code>taylor_swift_lyrics &lt;- readr::read_csv(&#39;https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-09-29/taylor_swift_lyrics.csv&#39;)</code></pre>
+<p>I was interested in the sentiments associated with each track number, so I added track numbers for each song. As every Taylor fan knows, there is significance behind the position of a song within the album. Track 5 is probably the best example; it’s well known as the most personal/sad/emotionally devastating/depressing song on the album. Here are some notable cases:</p>
+<ul>
+<li>“my tears ricochet” (folklore)</li>
+<li>“The Archer” (Lover)</li>
+<li>“All Too Well” (Red)</li>
+<li>“Dear John” (Speak Now)</li>
+<li>“White Horse” (Fearless)</li>
+</ul>
+<p>First, I had to manually fix the Fearless track numbers because the ordering is weird for the Platinum Edition of Fearless. The rest of the initial cleaning is the same as Rosie’s original <a href="https://rpubs.com/RosieB/taylorswiftlyricanalysis">post</a>.</p>
+<pre class="r"><code>taylor_swift_lyrics &lt;- taylor_swift_lyrics %&gt;%  # adding track numbers 
+  group_by(Album) %&gt;% 
+  mutate(Track = row_number()) %&gt;% 
+  ungroup()
+
+fearless_tracks &lt;- c(14, 15, 11, 16:18, 1:10, 12, 13)
+taylor_swift_lyrics$Track[which(taylor_swift_lyrics$Album == &quot;Fearless&quot;)] &lt;-  fearless_tracks</code></pre>
+<pre class="r"><code># From Rosie 
+data(stop_words)
+
+tidy_swift &lt;- taylor_swift_lyrics %&gt;%
+  unnest_tokens(word, Lyrics)  %&gt;% 
+   anti_join(stop_words, by=c(&quot;word&quot;=&quot;word&quot;)) 
+
+tidy_swift &lt;- tidy_swift  %&gt;%  filter(word != &quot;ooh&quot;) %&gt;% 
+  filter(word != &quot;yeah&quot;) %&gt;% 
+  filter(word != &quot;ah&quot;) %&gt;% 
+  filter(word != &quot;uh&quot;) %&gt;% 
+  filter(word != &quot;ha&quot;) %&gt;%
+  filter(word != &quot;whoa&quot;) %&gt;%
+  filter(word != &quot;eh&quot;) %&gt;%
+  filter(word != &quot;hoo&quot;) %&gt;%
+  filter(word != &quot;ey&quot;) %&gt;%
+  filter(word != &quot;mmm&quot;) %&gt;% 
+  filter(word != &quot;eeh&quot;) %&gt;% 
+  filter(word != &quot;huh&quot;) %&gt;% 
+  filter(word != &quot;na&quot;)</code></pre>
+<p>This gets rid of the “filler” words in each song.</p>
+</div>
+<div id="analysis" class="section level1">
+<h1>Analysis</h1>
+<p>Sentiments and emotions were assigned to each word according to the NRC dictionary. Some words were associated with multiple emotions, while some words were neutral. For example, “adore” was a positive word associated with joy, anticipation, and trust, but “blue” and “eyes” were not associated with anything.</p>
+<pre class="r"><code>my_cols &lt;- c(&quot;#7a7979&quot;,&quot;#ffc2da&quot;) # fall cottagecore colors 
+lyric_sentiments &lt;- tidy_swift %&gt;%
+  inner_join(get_sentiments(&quot;nrc&quot;), by=&quot;word&quot;)
+ 
+lyric_sentiments  %&gt;% 
+  filter(sentiment == &quot;negative&quot; | sentiment == &quot;positive&quot;) %&gt;%
+  group_by(Track,sentiment) %&gt;% 
+  count()  %&gt;% 
+  ungroup(sentiment) %&gt;%
+  mutate(prop = n/sum(n),
+         prop = ifelse(sentiment == &quot;negative&quot;, prop*-1, prop)) %&gt;% 
+  ggplot(aes(x =  as.factor(Track), y = prop, fill = sentiment)) + 
+  geom_bar(stat=&quot;identity&quot;, show.legend = FALSE, width = 0.8) + 
+  scale_x_discrete(limits =  c(1:19)) + 
+  labs(y = &quot;Negative vs. Positive Lyrics&quot;, x = &quot;Track Number&quot;, title = &quot;Taylor Swift Song Sentiment Analysis&quot;) + 
+  theme_minimal() + 
+  theme(plot.title = element_text(hjust = 0.5),
+        panel.grid = element_blank(),
+        panel.border = element_rect(fill = NA, color = &quot;black&quot;),  
+        text = element_text(family = &quot;mono&quot;)) + 
+  scale_y_continuous(limits = c(-0.8, 0.8)) + 
+  scale_fill_manual(values = my_cols)</code></pre>
+<p><img src="/posts/taylor-swift-lyrics/2020-12-04-taylor-swift-text-analysis_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>While Track 5 was relatively negative, it appeared to have some competition from Track 7 or even Track 18.</p>
+<p>Next, I looked at Track 5 on each album individually. On reputation, Track 5 (“Delicate”) actually had more positive lyrics than negative. On the other end, “The Archer” seemed to live up to the Track 5 reputation the most. “All You Had to Do Was Stay” was an interesting case, as it did not have as many sentimental words in general, but the ones it did have were largely negative.</p>
+<pre class="r"><code>lyric_sentiments &lt;- lyric_sentiments %&gt;% mutate(
+          Title = factor(str_replace(Title, &quot;my tear ricochet&quot;, &quot;my tears ricochet&quot;), 
+                        levels = c(&quot;Cold As You&quot;, &quot;White Horse&quot;, &quot;Dear John&quot;, &quot;All Too Well&quot;, &quot;All You Had to Do Was Stay&quot;, &quot;Delicate&quot;, &quot;The Archer&quot;, &quot;my tears ricochet&quot;)))
+
+lyric_sentiments %&gt;% 
+  filter(Track == 5)  %&gt;%
+  filter(sentiment == &quot;negative&quot; | sentiment == &quot;positive&quot;) %&gt;%
+  group_by(Title, Track,sentiment) %&gt;% 
+  count()  %&gt;% 
+  mutate(n = ifelse(sentiment == &quot;negative&quot;, n*-1, n)) %&gt;%
+  ggplot(aes(y = fct_rev(Title), x = n, fill = sentiment)) +
+  geom_bar(stat=&quot;identity&quot;, show.legend = FALSE, width = 0.8) +
+  labs(y = &quot;&quot;, x = &quot;Negative vs. Positive Lyrics&quot;, title = &quot;Track 5 Comparison&quot;) + 
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5),
+        panel.grid = element_blank(),
+        panel.border = element_rect(fill = NA, color = &quot;black&quot;),
+        text = element_text(family = &quot;mono&quot;)) + 
+  scale_fill_manual(values = my_cols)</code></pre>
+<p><img src="/posts/taylor-swift-lyrics/2020-12-04-taylor-swift-text-analysis_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p>I took a further look at the specific underlying sentiments in each song. Anger comes across as main theme in “my tears ricochet”, and “The Archer” is dominated by sadness, fear, and anger, which checks out. Trust was notable in “All Too Well” and “White Horse”, which is interesting since these are both breakup songs. Unsurprisingly, each song had a good amount of sadness.</p>
+<pre class="r"><code>my_cols2 &lt;- c(&quot;#0ad1c7&quot;, &quot;#e0d9b1&quot;, &quot;#ad2aa9&quot;, &quot;#eb1527&quot;, &quot;#a0aae8&quot;, &quot;#424242&quot;, &quot;#ffabdf&quot;, &quot;#dbdbdb&quot;)
+lyric_sentiments %&gt;% 
+  filter(Track == 5) %&gt;%
+  filter(sentiment != &quot;negative&quot; &amp; sentiment != &quot;positive&quot;) %&gt;% 
+  count(Title, sentiment) %&gt;% 
+  group_by(Title) %&gt;% 
+  ggplot(aes(y = fct_rev(Title), x = n, fill = Title)) +
+  labs(y = &quot;&quot;) + 
+  geom_bar(stat = &quot;identity&quot;) +
+  facet_wrap(~sentiment) + 
+  theme_minimal() +
+  theme(legend.position = &quot;none&quot;,
+        text = element_text(family = &quot;mono&quot;)) + 
+  scale_fill_manual(values = my_cols2)</code></pre>
+<p><img src="/posts/taylor-swift-lyrics/2020-12-04-taylor-swift-text-analysis_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+</div>
+<div id="thoughts" class="section level1">
+<h1>Thoughts</h1>
+<p>After this exercise, I realized that this type of sentiment analysis at the individual word level does not apply very well to Taylor Swift songs.</p>
+<p>Taylor really likes to convey sadness by reflecting on happier times that are no longer. For example, in “All Too Well”, she says: “Maybe this thing was a masterpiece before you tore it all up”. Here, “masterpiece” registers as a positive and joyous lyric when it is taken out of context.</p>
+<p>Similarly, in “White Horse”, she sings: “Now it’s too late for you and your white horse to catch me now”. While “late” is correctly identified as negative, “horse” is associated with trust, and “white” is considered positive and related to anticipation, joy, and trust. The individual lyrics may be positive, but as a whole they are not.</p>
+<pre class="r"><code>lyric_sentiments %&gt;% 
+  filter(word == &quot;masterpiece&quot; |
+         word == &quot;late&quot; |
+         word == &quot;white&quot; |
+         word == &quot;horse&quot;) %&gt;% 
+  count(word, sentiment) %&gt;%
+select(-n) %&gt;% 
+  kbl() %&gt;% 
+  kable_styling()</code></pre>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="text-align:left;">
+word
+</th>
+<th style="text-align:left;">
+sentiment
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+horse
+</td>
+<td style="text-align:left;">
+trust
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+late
+</td>
+<td style="text-align:left;">
+negative
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+late
+</td>
+<td style="text-align:left;">
+sadness
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+masterpiece
+</td>
+<td style="text-align:left;">
+joy
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+masterpiece
+</td>
+<td style="text-align:left;">
+positive
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+white
+</td>
+<td style="text-align:left;">
+anticipation
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+white
+</td>
+<td style="text-align:left;">
+joy
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+white
+</td>
+<td style="text-align:left;">
+positive
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+white
+</td>
+<td style="text-align:left;">
+trust
+</td>
+</tr>
+</tbody>
+</table>
+<p>Also, the sentiments that the NRC dictionary assigns to words are kind of questionable. Does “white” really contain that many positive connotations?</p>
+<p>Since it only considers one word at a time, it falls short when it comes to metaphors, which are another Taylor staple. To use “All Too Well” as an example again, she sings “I’m a crumpled up piece of paper lying here”. Clearly this is not a very happy lyric, but there are no sentiments associated with paper in the dictionary.</p>
+<p>Obviously, this was an extremely simple method of sentiment analysis, and I’m sure far more advanced methods would do a much better job with Taylor’s lyrics. But, the shortcomings here showed me the complex nature of textual data.</p>
+</div>
+<div id="notes-for-my-future-self" class="section level1">
+<h1>Notes For My Future Self</h1>
+<p>To tie it back to the very beginning of this post, I think it would be cool to use the data on Taylor’s music from the Spotify API, which has their own measures of how “happy” a song is.</p>
+</div>
+<div id="github-link" class="section level1">
+<h1>Github Link</h1>
+</div>
