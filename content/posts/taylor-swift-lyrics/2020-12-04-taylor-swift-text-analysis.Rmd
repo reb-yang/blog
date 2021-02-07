@@ -30,7 +30,9 @@ library(knitr)
 ```
 As the year comes to an end, Spotify Wrapped kindly reminds me of just how much Taylor Swift I listened to throughout the year. 
 
+<center>
 ![](/posts/taylor-swift-lyrics/2020-12-04-taylor-swift-text-analysis_files/IMG_7224.jpg){width=30%}
+</center>
 
 This album didn't even come out until the end of July. 
 
@@ -62,9 +64,7 @@ taylor_swift_lyrics <- taylor_swift_lyrics %>%  # adding track numbers
 
 fearless_tracks <- c(14, 15, 11, 16:18, 1:10, 12, 13)
 taylor_swift_lyrics$Track[which(taylor_swift_lyrics$Album == "Fearless")] <-  fearless_tracks
-```
 
-```{r}
 # From Rosie 
 data(stop_words)
 
@@ -172,10 +172,7 @@ Similarly, in "White Horse", she sings: "Now it's too late for you and your whit
 
 ```{r}
 lyric_sentiments %>% 
-  filter(word == "masterpiece" |
-         word == "late" |
-         word == "white" |
-         word == "horse") %>% 
+  filter(word == "masterpiece" | word == "late" | word == "white" | word == "horse") %>% 
   count(word, sentiment) %>%
 select(-n) %>% 
   kbl() %>% 

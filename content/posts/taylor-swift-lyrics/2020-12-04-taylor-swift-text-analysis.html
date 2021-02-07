@@ -13,7 +13,9 @@ output: blogdown::html_page
 
 
 <p>As the year comes to an end, Spotify Wrapped kindly reminds me of just how much Taylor Swift I listened to throughout the year.</p>
-<p><img src="/posts/taylor-swift-lyrics/2020-12-04-taylor-swift-text-analysis_files/IMG_7224.jpg" style="width:30.0%" /></p>
+<center>
+<img src="/posts/taylor-swift-lyrics/2020-12-04-taylor-swift-text-analysis_files/IMG_7224.jpg" style="width:30.0%" />
+</center>
 <p>This album didn’t even come out until the end of July.</p>
 <p>In this blog post, I make my first foray into the world of text analysis using one of the finest sources of text bestowed upon humankind: Taylor Swift lyrics.</p>
 <div id="data" class="section level1">
@@ -35,8 +37,9 @@ output: blogdown::html_page
   ungroup()
 
 fearless_tracks &lt;- c(14, 15, 11, 16:18, 1:10, 12, 13)
-taylor_swift_lyrics$Track[which(taylor_swift_lyrics$Album == &quot;Fearless&quot;)] &lt;-  fearless_tracks</code></pre>
-<pre class="r"><code># From Rosie 
+taylor_swift_lyrics$Track[which(taylor_swift_lyrics$Album == &quot;Fearless&quot;)] &lt;-  fearless_tracks
+
+# From Rosie 
 data(stop_words)
 
 tidy_swift &lt;- taylor_swift_lyrics %&gt;%
@@ -83,7 +86,7 @@ lyric_sentiments  %&gt;%
         text = element_text(family = &quot;mono&quot;)) + 
   scale_y_continuous(limits = c(-0.8, 0.8)) + 
   scale_fill_manual(values = my_cols)</code></pre>
-<p><img src="/posts/taylor-swift-lyrics/2020-12-04-taylor-swift-text-analysis_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p><img src="/posts/taylor-swift-lyrics/2020-12-04-taylor-swift-text-analysis_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
 <p>While Track 5 was relatively negative, it appeared to have some competition from Track 7 or even Track 18.</p>
 <p>Next, I looked at Track 5 on each album individually. On reputation, Track 5 (“Delicate”) actually had more positive lyrics than negative. On the other end, “The Archer” seemed to live up to the Track 5 reputation the most. “All You Had to Do Was Stay” was an interesting case, as it did not have as many sentimental words in general, but the ones it did have were largely negative.</p>
 <pre class="r"><code>lyric_sentiments &lt;- lyric_sentiments %&gt;% mutate(
@@ -105,7 +108,7 @@ lyric_sentiments %&gt;%
         panel.border = element_rect(fill = NA, color = &quot;black&quot;),
         text = element_text(family = &quot;mono&quot;)) + 
   scale_fill_manual(values = my_cols)</code></pre>
-<p><img src="/posts/taylor-swift-lyrics/2020-12-04-taylor-swift-text-analysis_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p><img src="/posts/taylor-swift-lyrics/2020-12-04-taylor-swift-text-analysis_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
 <p>I took a further look at the specific underlying sentiments in each song. Anger comes across as main theme in “my tears ricochet”, and “The Archer” is dominated by sadness, fear, and anger, which checks out. Trust was notable in “All Too Well” and “White Horse”, which is interesting since these are both breakup songs. Unsurprisingly, each song had a good amount of sadness.</p>
 <pre class="r"><code>my_cols2 &lt;- c(&quot;#0ad1c7&quot;, &quot;#e0d9b1&quot;, &quot;#ad2aa9&quot;, &quot;#eb1527&quot;, &quot;#a0aae8&quot;, &quot;#424242&quot;, &quot;#ffabdf&quot;, &quot;#dbdbdb&quot;)
 lyric_sentiments %&gt;% 
@@ -121,7 +124,7 @@ lyric_sentiments %&gt;%
   theme(legend.position = &quot;none&quot;,
         text = element_text(family = &quot;mono&quot;)) + 
   scale_fill_manual(values = my_cols2)</code></pre>
-<p><img src="/posts/taylor-swift-lyrics/2020-12-04-taylor-swift-text-analysis_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p><img src="/posts/taylor-swift-lyrics/2020-12-04-taylor-swift-text-analysis_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
 </div>
 <div id="thoughts" class="section level1">
 <h1>Thoughts</h1>
@@ -129,10 +132,7 @@ lyric_sentiments %&gt;%
 <p>Taylor really likes to convey sadness by reflecting on happier times that are no longer. For example, in “All Too Well”, she says: “Maybe this thing was a masterpiece before you tore it all up”. Here, “masterpiece” registers as a positive and joyous lyric when it is taken out of context.</p>
 <p>Similarly, in “White Horse”, she sings: “Now it’s too late for you and your white horse to catch me now”. While “late” is correctly identified as negative, “horse” is associated with trust, and “white” is considered positive and related to anticipation, joy, and trust. The individual lyrics may be positive, but as a whole they are not.</p>
 <pre class="r"><code>lyric_sentiments %&gt;% 
-  filter(word == &quot;masterpiece&quot; |
-         word == &quot;late&quot; |
-         word == &quot;white&quot; |
-         word == &quot;horse&quot;) %&gt;% 
+  filter(word == &quot;masterpiece&quot; | word == &quot;late&quot; | word == &quot;white&quot; | word == &quot;horse&quot;) %&gt;% 
   count(word, sentiment) %&gt;%
 select(-n) %&gt;% 
   kbl() %&gt;% 
