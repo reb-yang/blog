@@ -136,7 +136,7 @@ enableEmoji = true
         [languages.en.params.home.profile]
           enable = true
           # Gravatar Email for preferred avatar in home page
-          gravatarEmail = ""
+          # gravatarEmail = "" 
           # URL of avatar shown in home page
           # avatarURL = "/images/avatar.png"
           # title shown in home page (HTML format is supported)
@@ -298,7 +298,7 @@ enableEmoji = true
       appId = "QGzwQXOqs5JOhN4RGPOkR2mR-MdYXbMMI"
       appKey = "WBmoGyJtbqUswvfLh6L8iEBr"
       placeholder = ""
-      avatar = "mp"
+     # avatar = "mp"
       meta= ""
       pageSize = 10
       lang = ""
