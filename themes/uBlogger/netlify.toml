@@ -1,5 +1,5 @@
 [build]
-publish = "exampleSite/public"
+publish = "public"
 command = "cd exampleSite && hugo --themesDir ../.."
 
 [build.environment]
