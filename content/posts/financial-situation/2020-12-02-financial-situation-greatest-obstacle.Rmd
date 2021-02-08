@@ -1,7 +1,7 @@
 ---
 title: "Financial Situation is Greatest Obstacle Faced by Canadian Students"
 author: "Rebecca Yang"
-date: '2020-12-01'
+date: '2020-09-25'
 
 slug: financial-situation-is-greatest-obstacle
 categories: ["R"]
