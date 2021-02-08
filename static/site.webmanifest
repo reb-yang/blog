@@ -1,0 +1,8 @@
+{
+    "name": "uBlogger",
+    "short_name": "uBlogger",
+ 
+    "theme_color": "#ffffff",
+    "background_color": "#ffffff",
+    "display": "standalone"
+}
