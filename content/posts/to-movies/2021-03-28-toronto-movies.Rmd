@@ -132,3 +132,7 @@ plot3
 Critics and fans generally agree on the best and worst films. Sadly, not even Mariah's most devout fans could find any redemptive qualities in Glitter. Another musical movie, Hairspray was received more positively by critics than fans, which is surprising for a musical. On the flip side, Half Baked, starring Dave Chappelle was considered above average by fans, but did not even warrant a rating of 2 from critics. 
 
 Oscar nominations and wins were also consistently awarded to fans that were beloved by critics and fans alike. Suicide Squad and Silver Streak were a couple of notable exceptions, but they were nominated for non-acting categories. 
+
+# Code
+
+https://github.com/reb-yang/my-blog/tree/main/content/posts/to-movies

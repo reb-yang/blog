@@ -191,7 +191,7 @@ Obviously, this was an extremely simple method of sentiment analysis, and I'm su
 To tie it back to the very beginning of this post, I think it would be cool to use the data on Taylor's music from the Spotify API, which has their own measures of how "happy" a song is. 
 
 
-# Github Link
+# Code
 
-
+https://github.com/reb-yang/my-blog/tree/main/content/posts/taylor-swift-lyrics
 
