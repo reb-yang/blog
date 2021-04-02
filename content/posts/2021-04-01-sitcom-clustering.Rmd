@@ -1,0 +1,220 @@
+---
+title: "I'm High Dimensional. I'm Expensive Sushi. I'm a Little Bit Clustered."
+author: ''
+date: '2021-04-01'
+slug: []
+categories: []
+tags: []
+subtitle: ''
+lastmod: '2021-04-01T14:10:53-04:00'
+description: ''
+page:
+  theme: wide
+upd: ''
+authorComment: ''
+hiddenFromHomePage: no
+hiddenFromSearch: no
+featuredImage: ''
+featuredImagePreview: ''
+images:
+  - ''
+toc:
+  enable: no
+math:
+  enable: yes
+lightgallery: no
+license: ''
+output: blogdown::html_page
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE, fig.align ="center")
+library(tidyverse)
+library(tidymodels)
+library(tidytext)
+library(kableExtra)
+library(plotly)
+library(gridExtra)
+```
+
+When I watched How I Met Your Mother for the first time, I had a profound sense of deja vu. A group of twenty-somethings living in New York City? A nerd/hopeless romantic/sad guy? Old married couple of the friend group? Am I just watching Friends again? 
+
+However, I suspect this experience is not uncommon among other sitcom viewers. I couldn't help but wonder: Is there a formula behind the perfectly dysfunctional group of friends/colleagues/family members that live in sitcoms? What are the main personality types, and which characters belong to these stereotypes? Finally, is there an equal distribution of personality types within a show, or are they more similar than they are different? 
+
+In this blog post, I will be using Principial Component Analysis (PCA) and k-means clustering to analyze character types in popular sitcoms. The data and inspiration for this post comes from [Alex Cookson](https://www.alexcookson.com/post/2020-11-19-applying-pca-to-fictional-character-personalities/), who recently presented at the Toronto Data Workshop about the importance of fun data sets. 
+
+# Data
+
+The data is originally from the Open Source Psychometrics "Which Character Are You?" [personality quiz](https://openpsychometrics.org). It consists of 1,410 fictional characters across literature, television, and film, and contains ratings of 268 personality traits for each character on a scale from -50 to 50. Negative values mean that the character is leans more towards the lower end of the spectrum, and vice versa.  
+
+```{r}
+# loading in data from Alex
+personalities <- read_tsv("https://raw.githubusercontent.com/tacookson/data/master/fictional-character-personalities/personalities.txt")
+
+# sitcoms 
+sitcoms <- c("Brooklyn Nine-Nine", "Arrested Development", "Community", "Friends", "Girls",
+              "Parks and Recreation", "Schitt's Creek", "Scrubs", "Sex and the City",
+             "Silicon Valley", "Seinfeld", "That 70's Show", "The Big Bang Theory", "The Good Place", "The Office", "Two and Half Men")
+
+
+# taking a look at the data 
+sitcom_dat <-personalities %>%   # there's also an emoji scale but we don't care about that 
+  filter(fictional_work %in% sitcoms, !is_emoji) %>% 
+  select(-is_emoji)
+
+head(sitcom_dat, n=3) %>% 
+  kable() %>% 
+  kable_styling(latex_options = "striped")
+
+```
+
+# Step 1: Principal Component Analysis
+
+My end goal is to use k-means clustering to identify clusters of characters with similar traits across different sitcoms. But 268 personality traits is quite a lot to cluster by, so I'm going to do some dimensionality reduction with principal component analysis (PCA). Basically, this will reduce the 268 traits into 6 new "meta"-traits that are a good summary of the original data. Each additional principal component will be as different as possible from its predecessor, so as to cover as much area as possible. They actually capture 80% of the variability in the original data, which I think is pretty good for our purposes here. 
+
+
+```{r, out.width="70%"}
+sitcom_wide <- personalities %>% 
+  filter(fictional_work %in% sitcoms, !is_emoji) %>% 
+  select(character_code, spectrum, mean) %>%
+  pivot_wider(names_from = spectrum, values_from = mean)
+
+pca <- recipe(~ ., data = sitcom_wide) %>%
+  update_role(character_code, new_role = "id") %>%
+  step_normalize(all_predictors()) %>%
+  step_pca(all_predictors(), threshold = 0.8)
+
+personality_pca <- prep(pca) %>%
+  bake(new_data = sitcom_wide) 
+
+spectrum_list <- personalities %>%
+  distinct(spectrum, spectrum_low, spectrum_high)
+
+pca_traits <- prep(pca) %>%
+  tidy(type = "coef", number = 2) %>%
+  left_join(spectrum_list, by = c("terms" = "spectrum")) %>%
+  mutate(abs_value = abs(value)) %>% 
+  filter(component %in% paste0("PC", 1:6)) %>%
+  group_by(component) %>%
+  top_n(6, abs_value) %>%
+  mutate(traits = ifelse(value > 0, paste("(", spectrum_low, ") ", spectrum_high, sep = ""), 
+                         paste("(", spectrum_high, ") ", spectrum_low, sep = "")),
+         traits_ordered = reorder_within(traits, by = abs_value, within = component))
+
+pca_traits %>% 
+  ggplot(aes(y = traits_ordered, x = abs_value)) +
+  geom_bar(aes(fill = component), stat = "identity") + 
+  facet_wrap(~component, scales = "free", nrow = 2) + 
+  geom_text(aes(x = 0, y = traits_ordered, label = traits), hjust = 0,size = 3) +
+  scale_fill_brewer(palette = "Set2") +
+  theme_minimal() + 
+  theme(legend.position = "none",
+        axis.text = element_blank(),
+        axis.title = element_blank(),
+        panel.grid = element_blank()) 
+```
+
+Taking a quick look here, we can see that instead of scores for 268 different traits, each character now just has scores for 6 of these principal traits. 
+
+```{r}
+character_list <- sitcom_dat %>%
+  distinct(character_code, fictional_work, character_name) 
+round3 <- function(x) (round(x, 3))
+character_list %>% 
+  left_join(personality_pca) %>% 
+  mutate_if(is.numeric, round3) %>% 
+  head(n=3) %>% 
+  kable() %>% 
+  kable_styling(latex_options = "striped")
+  
+```
+
+
+# Step 2: Getting Clustered
+
+Now that we've simplified our data, we can do some clustering. 
+
+```{r}
+k_list <- c(1:15)
+trait_dat <- personality_pca[,-1]
+personalities_clusters <- tibble(k = k_list) %>%
+    mutate(kclust = map(k, ~kmeans(x = trait_dat , centers = .x, nstart = 20, iter.max = 30)), # kmeans for each k
+      glanced = map(kclust, glance), # applying glance function to each k
+      tidied = map(kclust, tidy) # saving tidied cluster summary to tided for each k
+      )
+```
+
+Now, the big question is, how many clusters are there? If it isn't clear by now, the amount of hand waving used here is proportional to the seriousness of the task at hand. With that in mind, we can take a look at the the different clusters that appear based on PC1 and PC2, which are the two most important components of the data.
+
+```{r, out.width = "70%"}
+k_plot <- function(x, i){
+   kclusts <- x %>% 
+   filter(k == i) %>% 
+   pluck("kclust", 1) %>% 
+   augment(personality_pca[1:7]) %>% 
+   left_join(character_list)
+   kclusts %>% ggplot(aes(y = PC1, x = PC2, color = .cluster)) +
+                geom_point() + labs(title = paste("k=", i, sep ="")) + theme(legend.position = "none")
+}
+
+k3 <- k_plot(personalities_clusters, 3)
+k4 <- k_plot(personalities_clusters, 4)
+k5 <- k_plot(personalities_clusters, 5)
+k6 <- k_plot(personalities_clusters, 6)
+grid.arrange(k3, k4, k5, k6, nrow = 2)
+```
+
+Based on this, k=4 seems like a reasonable estimate, since we can see four clearly defined clusters. Things start to get murky with five, especially between the green and pink regions. This will make it easier to make distinctions between the different characters, which is our goal. 
+
+Okay, finally (!), let's see who belongs to each cluster. Based on PC1 and PC2, we basically end up with one cluster in each quadrant: 
+
+- Cluster 1: the aloof and silly one (impulsive, scandalous, soft, warm)
+- Cluster 2: the unpredictable, no-nonsense one (impulsive, scandalous, hard, cold)
+- Cluster 3: the strict dad (proper, cautious, hard, cold)
+- Cluster 4: the wholesome one (proper, cautious, soft, warm)
+
+Hover on a point to find a character, and click on it to see other characters from the same show.
+
+```{r}
+kclusts4 <- personalities_clusters%>% 
+   filter(k == 4) %>% 
+   pluck("kclust", 1) %>% 
+   augment(personality_pca[1:7]) %>% 
+   left_join(character_list)
+
+plot_dat<- highlight_key(kclusts4, ~fictional_work)
+plot <-  plot_dat %>% 
+  ggplot(aes(y = PC1, x = PC2, color = .cluster, group = fictional_work)) + 
+  geom_point(aes(data_id = character_name)) +
+  annotate("text", x = 15, y = -16, label = "2) Scandalous, Impulsive,\nHard, Cold", color = "black") +
+  annotate("text", x = 16, y = 16, label = "3) Proper, Cautious,\nHard, Cold", color = "black") + 
+  annotate("text", x = -16, y = 16, label = "4) Proper, Cautious,\nSoft, Warm", color = "black") + 
+  annotate("text", x = -15, y = -16, label = "1) Scandalous, Impulsive,\nSoft, Warm", color = "black") +
+  labs(title = "Sitcom Character Clusters") + 
+  theme_minimal() +
+  theme(axis.text = element_blank(),
+        plot.background = element_rect(fill = "grey95")) + 
+  scale_x_continuous(limits = c(-20,20)) +
+  scale_y_continuous(limits = c(-20,20)) 
+# at this point i do not have it in me to make this prettier so it is what it is
+plot_inter <- ggplotly(plot, tooltip = c("data_id", "group"))
+highlight(plot_inter, on = "plotly_click", off = "plotly_deselect", opacityDim = 0.1)
+
+```
+
+So...how did we do? 
+
+I haven't seen all these shows, but I'll pick a few to comment on. 
+
+- Schitt's Creek^[The best sitcom, might I add]: Unsurprisingly, Ted (4) is deep in the lawfully good, wholesome corner of Cluster 4, as he should be. Out of all the family members, Alexis (1) and Moira (2) lean the most on the chaotic side, which is definitely true to the show. I would say Stevie (3) is appropriate placed as well, since she's known for her dry wit, and her self-awareness of her overly cautious approach to life becomes a major character turning point in the later seasons. 
+- That 70's Show: Red Foreman (3) is the most hard and cold, which definitely checks out. Jackie and Steven are both in cluster 4, and I love that for them. 
+- Sex and the City: Carrie (1), Miranda (3), Samantha (2), and Charlotte (4) all ended up in different clusters, which are pretty spot on. If you identify as a Samantha, you might also be a Moira, Steven Hyde, or Charlie Harper (not sure about Pierce from Community, though). If you're a Charlotte, you're also probably a Ted or Jared from Silicon Valley (I think his real name is Donald?) - all very wholesome and mild mannered. Here's a little behind the scenes factlet: I realized I messed up my labeling when Samantha ended up in the "Proper, Cautious, Soft, Warm" quadrant. 
+- Friends: Interestingly, the six friends are all in clusters 1 and 4, while most of the other shows hit at least three clusters. Although, I guess this makes sense, since none of them are hard or cold at all. Phoebe and Joey are the closest to each other, in the "aloof and silly" corner. Monica and Ross are in cluster 1, but they are closely bordering the "stern dad" corner. Given their controlling tendencies, it's not far off at all. 
+ 
+# Closing Thoughts
+
+All in all, despite that being not the most rigorous analysis, I think that worked pretty well! This was a super fun data set to play around with, so again, thanks to Alex Cookson! In the unlikely case that the Open Psychometrics person is reading this: if you add the Bridgerton characters, that would be the highlight of my year. 
+
+
+
+

@@ -86,23 +86,23 @@ plot2 <- plot1 +
   geom_label_repel(data=movie_ratings_avg %>% filter(residuals > 2.5), # Filter data first
     aes(label=title,
         family = "mono"),
-    nudge_y = 0.3, nudge_x = -0.3, size = 3) +
+    nudge_y = 0.3, nudge_x = -0.3, size = 2.5) +
   geom_label_repel(data=movie_ratings_avg %>% filter(residuals < -3), # Filter data first
                    aes(label=title,
                        family = "mono"),
-                   nudge_y = -0.5, size = 3) +
+                   nudge_y = -0.5, size = 2.5) +
   geom_label_repel(data=movie_ratings_avg %>% filter(imdb_rating < 4 & scale_meta < 2),
                    aes(label=title,
                        family = "mono"),
-                   nudge_y = -0.3, nudge_x = -0.4, size = 3) +
+                   nudge_y = -0.3, nudge_x = -0.4, size = 2.5) +
   geom_label_repel(data=movie_ratings_avg %>% filter(imdb_rating > 8),
                    aes(label=title,
                        family = "mono"),
-                   nudge_y = 0.4, nudge_x = 0.5, size = 3) +
+                   nudge_y = 0.4, nudge_x = 0.5, size = 2.5) +
   geom_label_repel(data=movie_ratings_avg %>% filter(scale_meta >= 9),
                    aes(label=title,
                        family = "mono"),
-                   nudge_y = 0.4, nudge_x = 0.5, size = 3)
+                   nudge_y = 0.4, nudge_x = 0.5, size = 2.5)
 
 
 plot3 <- plot2 +
