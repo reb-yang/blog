@@ -17,7 +17,7 @@ A fun fact about Toronto is that a lot of popular TV shows and movies are filmed
 
 In the following visualization, I take a look at how critic and fan responses on IMDb compare for different movies filmed in Toronto. The data comes from IMBd and the list of movies filmed in Toronto comes from [Wikipedia](https://en.wikipedia.org/wiki/List_of_films_shot_in_Toronto). I adjusted my comparison to account for the fact critics, on average, give lower ratings than fans. So, for example, a rating of 4.94 from critics and a 6.28 from fans would be considered as agreement between the two parties.
 
-```{r echo=FALSE, fig.align="center", fig.height=6, fig.width=7, message=FALSE, warning=FALSE}
+```{r echo=FALSE, fig.align="center", fig.height=6, fig.width=8, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(ggrepel)
 library(ggimage)
@@ -86,43 +86,42 @@ plot2 <- plot1 +
   geom_label_repel(data=movie_ratings_avg %>% filter(residuals > 2.5), # Filter data first
     aes(label=title,
         family = "mono"),
-    nudge_y = 0.3, nudge_x = -0.3, size = 2.5) +
+    nudge_y = 0.3, nudge_x = -0.3, size = 2) +
   geom_label_repel(data=movie_ratings_avg %>% filter(residuals < -3), # Filter data first
                    aes(label=title,
                        family = "mono"),
-                   nudge_y = -0.5, size = 2.5) +
+                   nudge_y = -0.5, size = 2) +
   geom_label_repel(data=movie_ratings_avg %>% filter(imdb_rating < 4 & scale_meta < 2),
                    aes(label=title,
                        family = "mono"),
-                   nudge_y = -0.3, nudge_x = -0.4, size = 2.5) +
+                   nudge_y = -0.3, nudge_x = -0.4, size = 2) +
   geom_label_repel(data=movie_ratings_avg %>% filter(imdb_rating > 8),
                    aes(label=title,
                        family = "mono"),
-                   nudge_y = 0.4, nudge_x = 0.5, size = 2.5) +
+                   nudge_y = 0.4, nudge_x = 0.5, size = 2) +
   geom_label_repel(data=movie_ratings_avg %>% filter(scale_meta >= 9),
                    aes(label=title,
                        family = "mono"),
-                   nudge_y = 0.4, nudge_x = 0.5, size = 2.5)
+                   nudge_y = 0.4, nudge_x = 0.5, size = 2)
+
 
 
 plot3 <- plot2 +
-  geom_text(aes(label = "These movies were\nreceived better by critics\nthan fans",
-                x = 4, y= 8.7, family = "mono"), size = 3.5) + 
-  geom_text(aes(label = paste("Average\n", critics_avg),
-                y = critics_avg, x = 1, family = "mono"), size = 3) + 
-  geom_text(aes(label = paste("Average\n", user_avg),
-                x = user_avg, y = 10, family = "mono"), size = 3) +
-  geom_text(aes(label = "These fan favorites\nwere a flop with\ncritics",
-                x = 9, y= 2, family = "mono"),size = 3.5) +
+  annotate("text", label = "These movies were\nreceived better by critics\nthan fans",x = 4, y= 8.7, family = "mono", size = 3.5) + 
+  annotate("text", label = paste("Average\n", critics_avg),
+                y = critics_avg, x = 1, family = "mono", size = 3) + 
+  annotate("text", label = paste("Average\n", user_avg),
+                x = user_avg, y = 10, family = "mono", size = 3) +
+  annotate("text", label = "These fan favorites\nwere a flop with\ncritics",
+                x = 9, y= 2, family = "mono",size = 3.5) +
   geom_label_repel(data = movie_ratings_avg %>% filter(title == "Suicide Squad"),
-                   aes(label = "Suicide Squad won\nan Oscar for best\nMakeup and Hairstyling",
-                family = "mono"), size = 2.5, nudge_y = -0.5, nudge_x = -3) +
+                   aes(label = "Suicide Squad won\nan Oscar for best\nMakeup and Hairstyling", family = "mono"), size = 2.5, nudge_y = -0.5, nudge_x = -3) +
   geom_label_repel(data = movie_ratings_avg %>% filter(title == "Silver Streak"),
                    aes(label = "Silver Streak was\nnominated for\nbest Sound",
                        family = "mono"), size = 2.5, nudge_y = -0.4, nudge_x = 1.7) +
   geom_image(aes(x = 1, y = 7, image=oscar_img), size=.018) +
-  geom_text(aes(label = "= Oscar nominee/winner",
-                y = 7, x = 2, family = "Lobster"), size = 3) 
+  annotate("text", label = "= Oscar nominee/winner",
+                y = 7, x = 2, family = "Lobster", size = 3) 
 
 
 plot3

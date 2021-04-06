@@ -45,7 +45,7 @@ In this blog post, I will be using Principial Component Analysis (PCA) and k-mea
 
 # Data
 
-The data is originally from the Open Source Psychometrics "Which Character Are You?" [personality quiz](https://openpsychometrics.org). It consists of 1,410 fictional characters across literature, television, and film, and contains ratings of 268 personality traits for each character on a scale from -50 to 50. Negative values mean that the character is leans more towards the lower end of the spectrum, and vice versa.  
+The data is originally from the Open Source Psychometrics "Which Character Are You?" [personality quiz](https://openpsychometrics.org). It consists of 1,410 fictional characters across literature, television, and film, and contains ratings of 268 personality traits for each character on a scale from -50 to 50. Negative values mean that the character is leans more towards the lower end of the spectrum, and vice versa. I'll be focusing on sitcoms, which leaves 125 characters. 
 
 ```{r}
 # loading in data from Alex
@@ -157,6 +157,7 @@ k_plot <- function(x, i){
                 geom_point() + labs(title = paste("k=", i, sep ="")) + theme(legend.position = "none")
 }
 
+ 
 k3 <- k_plot(personalities_clusters, 3)
 k4 <- k_plot(personalities_clusters, 4)
 k5 <- k_plot(personalities_clusters, 5)
@@ -164,14 +165,14 @@ k6 <- k_plot(personalities_clusters, 6)
 grid.arrange(k3, k4, k5, k6, nrow = 2)
 ```
 
-Based on this, k=4 seems like a reasonable estimate, since we can see four clearly defined clusters. Things start to get murky with five, especially between the green and pink regions. This will make it easier to make distinctions between the different characters, which is our goal. 
+Based on this, k=4 seems like a reasonable estimate, since we can see four clearly defined clusters. Things start to get murky with five, especially between the green and pink regions. This will make it easier to make distinctions between the different characters, which will be helpful for interpreting and evaluating the final clusters.
 
 Okay, finally (!), let's see who belongs to each cluster. Based on PC1 and PC2, we basically end up with one cluster in each quadrant: 
 
 - Cluster 1: the aloof and silly one (impulsive, scandalous, soft, warm)
 - Cluster 2: the unpredictable, no-nonsense one (impulsive, scandalous, hard, cold)
 - Cluster 3: the strict dad (proper, cautious, hard, cold)
-- Cluster 4: the wholesome one (proper, cautious, soft, warm)
+- Cluster 4: the good wholesome one (proper, cautious, soft, warm)
 
 Hover on a point to find a character, and click on it to see other characters from the same show.
 
@@ -198,23 +199,22 @@ plot <-  plot_dat %>%
   scale_y_continuous(limits = c(-20,20)) 
 # at this point i do not have it in me to make this prettier so it is what it is
 plot_inter <- ggplotly(plot, tooltip = c("data_id", "group"))
-highlight(plot_inter, on = "plotly_click", off = "plotly_deselect", opacityDim = 0.1)
+highlight(plot_inter, on = "plotly_click", off = "plotly_doubleclick", opacityDim = 0.15)
 
 ```
 
-So...how did we do? 
+# So...how did we do? 
 
 I haven't seen all these shows, but I'll pick a few to comment on. 
 
-- Schitt's Creek^[The best sitcom, might I add]: Unsurprisingly, Ted (4) is deep in the lawfully good, wholesome corner of Cluster 4, as he should be. Out of all the family members, Alexis (1) and Moira (2) lean the most on the chaotic side, which is definitely true to the show. I would say Stevie (3) is appropriate placed as well, since she's known for her dry wit, and her self-awareness of her overly cautious approach to life becomes a major character turning point in the later seasons. 
+- Schitt's Creek (the best sitcom): Unsurprisingly, Ted (4) is deep in the lawfully good, wholesome corner of Cluster 4, as he should be. Out of all the family members, Alexis (1) and Moira (2) lean the most on the chaotic side, which is definitely true to the show. I would say Stevie (3) is appropriate placed as well, since she's known for her dry wit, and her self-awareness of her overly cautious approach to life becomes a major character turning point in the later seasons. 
 - That 70's Show: Red Foreman (3) is the most hard and cold, which definitely checks out. Jackie and Steven are both in cluster 4, and I love that for them. 
 - Sex and the City: Carrie (1), Miranda (3), Samantha (2), and Charlotte (4) all ended up in different clusters, which are pretty spot on. If you identify as a Samantha, you might also be a Moira, Steven Hyde, or Charlie Harper (not sure about Pierce from Community, though). If you're a Charlotte, you're also probably a Ted or Jared from Silicon Valley (I think his real name is Donald?) - all very wholesome and mild mannered. Here's a little behind the scenes factlet: I realized I messed up my labeling when Samantha ended up in the "Proper, Cautious, Soft, Warm" quadrant. 
 - Friends: Interestingly, the six friends are all in clusters 1 and 4, while most of the other shows hit at least three clusters. Although, I guess this makes sense, since none of them are hard or cold at all. Phoebe and Joey are the closest to each other, in the "aloof and silly" corner. Monica and Ross are in cluster 1, but they are closely bordering the "stern dad" corner. Given their controlling tendencies, it's not far off at all. 
  
 # Closing Thoughts
 
-All in all, despite that being not the most rigorous analysis, I think that worked pretty well! This was a super fun data set to play around with, so again, thanks to Alex Cookson! In the unlikely case that the Open Psychometrics person is reading this: if you add the Bridgerton characters, that would be the highlight of my year. 
-
+All in all, despite that being not the most rigorous analysis (a couple more clusters couldn't hurt), I think that worked pretty well! In the unlikely case that the Open Psychometrics person is reading this: if you add the Bridgerton characters, that would be the highlight of my year. Finally, I'm pretty sure no one will think the title of this post is as hilarious as I do. 
 
 
 
